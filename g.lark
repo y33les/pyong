@@ -1,0 +1,86 @@
+// Adapted from the Klong Quick Reference by Nils M. Holm
+// http://t3x.org/klong/klong-qref.txt.html
+
+start: program
+
+program: expression
+       | expression ";" program
+
+expression: factor
+          | factor dyad expression
+
+factor: lexemeclass
+      | symbol arglist
+      | function
+      | function arglist
+      | monad expression
+      | "(" expression ")"
+      | conditional
+      | list
+      | dictionary
+
+lexemeclass: integer
+           | character
+	   | real
+	   | string
+	   | symbol // variable
+	   | quotsym // quoted symbol
+
+conditional: ":[" ( expression ";" expression ":|" )* expression ";" expression ";" expression "]"
+
+monad: operator adverb
+     | function adverb+
+     | symbol adverb+
+
+dyad: operator adverb*
+    | function adverb*
+    | symbol adverb*
+
+function: "{" program "}"
+        | "{" program "}" program
+	| symbol projarg
+
+projarg: "(" ";" expression ")"
+       | "(" expression ";" ")"
+       | "(" ";" expression ";" expression ")"
+       | "(" expression ";" ";" expression ")"
+       | "(" expression ";" expression ";" ")"
+       | "(" ";" ";" expression ")"
+       | "(" ";" expression ";" ")"
+       | "(" expression ";" ";" ")"
+
+arglist: "(" ")"
+       | "(" expression ")"
+       | "(" expression ";" expression ")"
+       | "(" expression ":" expression ";" expression ")"
+
+list: "[" (lexemeclass|list)* "]"
+
+dictionary: ":{" tuple* "}"
+
+tuple: "[" (lexemeclass|list) (lexemeclass|list) "]"
+
+symbol: /[a-zA-Z\.][a-zA-Z0-9\.]*/
+operator: /:?[!$%&*+,-\.\/;<=>?@\\^_|~#]/
+        | /::/
+//        \\~ \\*                          two-character Operator
+integer: /-?[0-9]+/
+real: /-?[0-9]+\.[0-9]+/
+//        -?[0-9]+(\.[0-9]+)?e[+-]?[0-9]+  Real    *
+//        0b[01]+                          Binary Integer
+//        0o[0-7]+                         Octal Integer
+//        0x[0-9a-fA-F]+                   Hexa-Decimal Integer
+character: /0c./
+string: /".*"/
+//        :String                          Comment
+quotsym: ":" symbol
+//        :Number                          Number
+//        :Character                       Character
+
+adverb: /'/
+      | /:[\\\/'~*]/
+      | /\//
+      | /\\[~*]?/
+
+%import common.WS
+%ignore WS
