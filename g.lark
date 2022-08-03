@@ -83,6 +83,8 @@ adverb: /'/
       | /\//
       | /\\[~*]?/
 
+// TODO: \ help functions
+
 quit: /\\\\/
 
 %import common.WS

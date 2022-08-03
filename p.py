@@ -1,5 +1,5 @@
-import ast, lark.exceptions, f
-from lark import Lark, Transformer
+import ast, f
+from lark import Transformer
 from astor import to_source
 
 class T(Transformer):
@@ -36,29 +36,10 @@ class T(Transformer):
     def program(self,tree):
         return tree[0] # FIXME: This only works for single expressions!!
 
+    # TODO: implement \ help functions
+
     def quit(self,tree):
         quit()
 
     def start(self,tree):
         return ast.fix_missing_locations(ast.Expression(tree[0])) # FIXME: This only works for single expressions!!
-
-if __name__ == '__main__':
-    with open('g.lark') as g:
-        p = Lark(g)
-    t = T()
-    while True:
-        try:
-            text = input('pyong > ')
-            result = p.parse(text)
-            #print(result.pretty()) # show Lark tree (for now)
-            result = t.transform(result)
-            print("        => "+to_source(result)) # AST -> equivalent Python code
-            eval(compile(result,filename='<ast>',mode='eval')) # evaluate AST
-        except lark.exceptions.UnexpectedCharacters as e:
-            print(e)
-        except lark.exceptions.UnexpectedEOF as e:
-            print(e)
-        except NameError as e:
-            print(e)
-        except EOFError:
-            break
