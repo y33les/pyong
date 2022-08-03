@@ -2,6 +2,7 @@
 // http://t3x.org/klong/klong-qref.txt.html
 
 start: program
+     | quit
 
 program: expression
        | expression ";" program
@@ -52,7 +53,7 @@ projarg: "(" ";" expression ")"
 arglist: "(" ")"
        | "(" expression ")"
        | "(" expression ";" expression ")"
-       | "(" expression ":" expression ";" expression ")"
+       | "(" expression ";" expression ";" expression ")"
 
 list: "[" (lexemeclass|list)* "]"
 
@@ -81,6 +82,8 @@ adverb: /'/
       | /:[\\\/'~*]/
       | /\//
       | /\\[~*]?/
+
+quit: /\\\\/
 
 %import common.WS
 %ignore WS
