@@ -1,8 +1,16 @@
-import p,f,lark.exceptions
+# Pyong interpreter
+
+import p,o,a,u,lark.exceptions
 from lark import Lark
 
 # FIXME: evaluate can't find Python-defined variables
 #        e.g. a=2 then pyong.evaluate(":a") can't find a
+# TODO:  implement tacit?
+
+def parseTree(text):
+    with open('g.lark') as g:
+        parser = Lark(g)
+    return parser.parse(text)
 
 def evaluate(text):
     transformer = p.T()
