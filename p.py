@@ -85,28 +85,44 @@ class T(Transformer):
         return ast.Constant(int(tree[0].value))
 
     def character(self,tree): # TODO: Remove 0c prefix
-        return ast.Constant(str(tree[0].value))
+        return ast.Constant(str(tree[0].value[-1])) # TODO: Any Unicode situations this won't work for?
 
     def real(self,tree):
         return ast.Constant(float(tree[0].value))
 
     def string(self,tree): # TODO: Remove quotes
-        return ast.Constant(str(tree[0].value))
+        return ast.Constant(str(tree[0].value[1:-1:]))
 
     def symbol(self,tree):
         return ast.Name(tree[0].value,ctx=ast.Load())
 
     def quotsym(self,tree):
-        return ast.Call(ast.Attribute(value=ast.Name(id='u',ctx=ast.Load()),attr='quote',ctx=ast.Load()),args=[tree[0]],keywords=[]) # FIXME: possible interference if another package imported as f?  also requires f to be imported in whatever's calling this
+        return ast.Call(ast.Attribute(value=ast.Name(id='u',ctx=ast.Load()),attr='quote',ctx=ast.Load()),args=[tree[0]],keywords=[]) # FIXME: possible interference if another package imported as u?  also requires u to be imported in whatever's calling this
 
     def lexemeclass(self,tree):
         return tree[0]
 
+    # Klong lists are immutable, so we use Python tuples instead of lists
+    # (this also solves the dictionary lists-as-keys problem)
     def list(self,tree):
-        return ast.List(elts=tree,ctx=ast.Load())
+        return ast.Tuple(elts=tree,ctx=ast.Load())
 
     def factor(self,tree):
         return tree[0] # FIXME: This only works for lexemeclasses!!
+
+    def tuple(self,tree):
+        return ast.Dict(keys=[tree[0]],values=[tree[1]])
+
+    # FIXME: Seems to be parsing string keys incorrectly for some reason
+    def dictionary(self,tree):
+        d = tree[0]
+        if len(tree)==1:
+            return d
+        else:
+            for i in tree[1::]:
+                d.keys=d.keys+i.keys
+                d.values=d.values+i.values
+            return d
 
     def expression(self,tree):
         return tree[0] # FIXME: This only works for single expressions!!
@@ -121,3 +137,17 @@ class T(Transformer):
 
     def start(self,tree):
         return ast.fix_missing_locations(ast.Expression(tree[0])) # FIXME: This only works for single expressions!!
+
+# For testing
+from lark import Lark
+with open('g.lark') as g:
+    p = Lark(g)
+t = T()
+def dump(e):
+    return ast.dump(t.transform(p.parse(e)))
+def pp(e):
+    print(p.parse(e).pretty())
+def src(e):
+    print(to_source(t.transform(p.parse(e))))
+def ev(e):
+    return eval(compile(t.transform(p.parse(e)),filename='<ast>',mode='eval'))
