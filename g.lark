@@ -64,7 +64,7 @@ dictionary: ":{" tuple* "}"
 tuple: "[" (lexemeclass|list) (lexemeclass|list) "]"
 
 symbol: /[a-zA-Z\.][a-zA-Z0-9\.]*/
-operator: /:?[!$%&*+,-\.\/;<=>?@\\^_|~#]/
+operator: /:?[!$%&*+,-\.\/<=>?@\\^_|~#]/ // removed ;
         | /::/
 //        \\~ \\*                          two-character Operator
 integer: /-?[0-9]+/
@@ -74,7 +74,7 @@ real: /-?[0-9]+\.[0-9]+/
 //        0o[0-7]+                         Octal Integer
 //        0x[0-9a-fA-F]+                   Hexa-Decimal Integer
 character: /0c./
-string: /".*"/
+string: /".+?"/ // originally /.*/ but that matched everything up until the last " in the line; bad for lines including more than one string
 //        :String                          Comment
 quotsym: ":" symbol
 //        :Number                          Number

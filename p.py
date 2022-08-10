@@ -84,13 +84,13 @@ class T(Transformer):
     def integer(self,tree):
         return ast.Constant(int(tree[0].value))
 
-    def character(self,tree): # TODO: Remove 0c prefix
+    def character(self,tree):
         return ast.Constant(str(tree[0].value[-1])) # TODO: Any Unicode situations this won't work for?
 
     def real(self,tree):
         return ast.Constant(float(tree[0].value))
 
-    def string(self,tree): # TODO: Remove quotes
+    def string(self,tree):
         return ast.Constant(str(tree[0].value[1:-1:]))
 
     def symbol(self,tree):
@@ -107,13 +107,31 @@ class T(Transformer):
     def list(self,tree):
         return ast.Tuple(elts=tree,ctx=ast.Load())
 
+    # arglists are just Python lists of AST nodes ready for inclusion in the supernode
+    def arglist(self,tree):
+        return tree
+
     def factor(self,tree):
-        return tree[0] # FIXME: This only works for lexemeclasses!!
+        if len(tree)==1: # lexemeclass
+            return tree[0]
+        elif len(tree)==2: # symbol+arglist, function+arglist, monad+expression
+            # FIXME: better to check ifinstance(tree[1],list) for arglists?
+            if isinstance(tree[0],ast.Name): # symbol+arglist
+                return ast.Call(tree[0],args=tree[1],keywords=[])
+            elif isinstance(tree[0],ast.Expression): # function+arglist
+                # FIXME when function implemented: is it definitely a Expression?
+                pass # TODO
+            elif isinstance(tree[0],ast.Call): # monad+expression
+                # FIXME when monad implemented: is it definitely a Call?
+                pass # TODO
+            else:
+                raise Exception("2-element factor but not a symbol, function or monad first?")
+        else:
+            raise Exception("a factor with more than 2 elements?  smells like a parser bug to me")
 
     def tuple(self,tree):
         return ast.Dict(keys=[tree[0]],values=[tree[1]])
 
-    # FIXME: Seems to be parsing string keys incorrectly for some reason
     def dictionary(self,tree):
         d = tree[0]
         if len(tree)==1:
