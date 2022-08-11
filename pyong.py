@@ -19,6 +19,23 @@ def evaluate(text):
     result = transformer.transform(parser.parse(text))
     return eval(compile(result,filename='<ast>',mode='eval'))
 
+    # FIXME: this only works for expressions, not statements
+    #        for statements (e.g. assignment), we need something like this:
+    #
+    #        eval(
+    #            compile(
+    #                ast.fix_missing_locations(
+    #                    ast.Module( # Note Module, not Expression
+    #                        [ast.Assign(
+    #                            targets=[ast.Name(id='foo',ctx=ast.Store())],
+    #                            value=ast.Constant(2))],
+    #                        type_ignores=[])),
+    #                filename='<ast>',
+    #                mode='exec')) # Note 'exec', not 'eval'
+    #
+    #        statements discard their results; expressions don't
+    #        https://stackoverflow.com/a/68944101
+
 if __name__ == '__main__':
     transformer = p.T()
     with open('g.lark') as g:

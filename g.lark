@@ -31,7 +31,7 @@ lexemeclass: integer
 
 conditional: ":[" ( expression ";" expression ":|" )* expression ";" expression ";" expression "]"
 
-monad: operator adverb
+monad: operator adverb*
      | function adverb+
      | symbol adverb+
 
