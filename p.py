@@ -2,11 +2,16 @@
 
 import ast,o,a,u
 from lark import Transformer
+from itertools import chain
 from astor import to_source
 
 # Generate an AST node referencing an object a in package p
 def attrWrap(p,a):
     return ast.Attribute(value=ast.Name(id=p,ctx=ast.Load()),attr=a,ctx=ast.Load())
+
+# Flatten an arbitrarily nested list (TODO: Does this hit the stack limit for recursion?)
+# See 'Flatten List of Lists Using Lambda' on https://stackabuse.com/python-how-to-flatten-list-of-lists/
+flatten = lambda l: [e for i in l for e in flatten(i)] if type(l) is list else [l]
 
 # Monadic operator lookup table
 monadOps =  {'@':  attrWrap('o','kAtom'),             # Atom
@@ -143,18 +148,25 @@ class T(Transformer):
             return d
 
     def expression(self,tree):
-        return tree[0] # FIXME: This only works for single expressions!!
+        if len(tree)==1:
+            return ast.Expression(tree[0])
+        else:
+            pass # TODO: implement 'factor dyad expression' version
 
     def program(self,tree):
-        return tree[0] # FIXME: This only works for single expressions!!
+        if len(tree)==1:
+            return [ast.fix_missing_locations(tree[0])]
+        else:
+            return list(map(lambda n: ast.fix_missing_locations(n), flatten(tree))) # using flattened program list - N.B.: relies on there not being any lists in the tree below it!
 
     # TODO: implement \ help functions
 
     def quit(self,tree):
-        quit()
+        quit() # TODO: is this the correct way to quit?
+               # TODO: ignore/throw exception if running inside python rather than the pyong interpreter
 
     def start(self,tree):
-        return ast.fix_missing_locations(ast.Expression(tree[0])) # FIXME: This only works for single expressions!!
+        return tree[0]
 
 # For testing
 from lark import Lark
@@ -162,10 +174,14 @@ with open('g.lark') as g:
     p = Lark(g)
 t = T()
 def dump(e):
-    return ast.dump(t.transform(p.parse(e)))
+    return list(map(ast.dump,t.transform(p.parse(e))))
 def pp(e):
     print(p.parse(e).pretty())
 def src(e):
-    print(to_source(t.transform(p.parse(e))))
+    for i in t.transform(p.parse(e)):
+        print(to_source(i))
 def ev(e):
-    return eval(compile(t.transform(p.parse(e)),filename='<ast>',mode='eval'))
+    l = t.transform(p.parse(e))
+    for i in l[0:-1]:
+        eval(compile(i,filename='<ast>',mode='eval'))
+    return eval(compile(l[-1],filename='<ast>',mode='eval'))

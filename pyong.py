@@ -17,7 +17,12 @@ def evaluate(text):
     with open('g.lark') as g:
         parser = Lark(g)
     result = transformer.transform(parser.parse(text))
-    return eval(compile(result,filename='<ast>',mode='eval'))
+    if len(result)==1:
+        return eval(compile(result[0],filename='<ast>',mode='eval'))
+    else:
+        for e in result[0:-1]:
+            eval(compile(e,filename='<ast>',mode='eval'))
+        return eval(compile(result[-1],filename='<ast>',mode='eval'))
 
     # FIXME: this only works for expressions, not statements
     #        for statements (e.g. assignment), we need something like this:
@@ -35,6 +40,9 @@ def evaluate(text):
     #
     #        statements discard their results; expressions don't
     #        https://stackoverflow.com/a/68944101
+    #
+    #        actually, we can used named expressions to do assignment (in
+    #        python, (a:=2), using ast.NamedExpr) in expressions
 
 if __name__ == '__main__':
     transformer = p.T()
