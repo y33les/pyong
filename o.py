@@ -72,7 +72,7 @@ def kCut(x,y):
     pass
 
 def kDefine(x,y):
-    pass
+    return x-y # TODO: proper version
 
 def kDivide(x,y):
     pass

@@ -147,11 +147,22 @@ class T(Transformer):
                 d.values=d.values+i.values
             return d
 
+    def operator(self,tree):
+        return tree[0]
+
+    def dyad(self,tree):
+        if len(tree)==1: # No adverbs
+            return dyadOps[tree[0].value]
+        else:            # At least one adverb
+            raise Exception("NYI: dyad adverb+") # FIXME
+
     def expression(self,tree):
         if len(tree)==1:
             return ast.Expression(tree[0])
+        elif len(tree)==3:
+            return ast.Expression(ast.Call(func=tree[1],args=[tree[0],tree[2]],keywords=[])) # FIXME: locations?
         else:
-            pass # TODO: implement 'factor dyad expression' version
+            raise Exception("you've got an expression which is neither a factor nor a factor, dyad, expression")
 
     def program(self,tree):
         if len(tree)==1:
@@ -161,9 +172,8 @@ class T(Transformer):
 
     # TODO: implement \ help functions
 
-    def quit(self,tree):
-        quit() # TODO: is this the correct way to quit?
-               # TODO: ignore/throw exception if running inside python rather than the pyong interpreter
+    def quit(self,tree): # TODO: is this the correct way to quit?
+        quit()           # TODO: ignore/throw exception if running inside python rather than the pyong interpreter
 
     def start(self,tree):
         return tree[0]
