@@ -150,11 +150,17 @@ class T(Transformer):
     def operator(self,tree):
         return tree[0]
 
+    def monad(self,tree):
+        if len(tree)==1: # No adverbs
+            return monadOps[tree[0].value]
+        else:            # At least one adverb
+            raise Exception("NYI: monad with adverb+") # FIXME
+
     def dyad(self,tree):
         if len(tree)==1: # No adverbs
             return dyadOps[tree[0].value]
         else:            # At least one adverb
-            raise Exception("NYI: dyad adverb+") # FIXME
+            raise Exception("NYI: dyad with adverb+") # FIXME
 
     def expression(self,tree):
         if len(tree)==1:
