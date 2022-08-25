@@ -43,14 +43,24 @@ function: "{" program "}"
         | "{" program "}" program
 	| symbol projarg
 
-projarg: "(" ";" expression ")"
-       | "(" expression ";" ")"
-       | "(" ";" expression ";" expression ")"
-       | "(" expression ";" ";" expression ")"
-       | "(" expression ";" expression ";" ")"
-       | "(" ";" ";" expression ")"
-       | "(" ";" expression ";" ")"
-       | "(" expression ";" ";" ")"
+// original projarg didn't encode any positional information, so introduce new cases
+projarg01: "(" ";" expression ")"
+projarg10: "(" expression ";" ")"
+projarg011: "(" ";" expression ";" expression ")"
+projarg101: "(" expression ";" ";" expression ")"
+projarg110: "(" expression ";" expression ";" ")"
+projarg001: "(" ";" ";" expression ")"
+projarg010: "(" ";" expression ";" ")"
+projarg100: "(" expression ";" ";" ")"
+
+projarg: projarg01
+       | projarg10
+       | projarg011
+       | projarg101
+       | projarg110
+       | projarg001
+       | projarg010
+       | projarg100
 
 arglist: "(" ")"
        | "(" expression ")"

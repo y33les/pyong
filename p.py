@@ -4,6 +4,7 @@ import ast,o,a,u
 from lark import Transformer
 from itertools import chain
 from astor import to_source
+from astunparse import dump
 
 # Generate an AST node referencing an object a in package p
 def attrWrap(p,a):
@@ -116,19 +117,90 @@ class T(Transformer):
     def arglist(self,tree):
         return tree
 
+    def projarg01(self,tree):
+        return [None]+tree
+
+    def projarg10(self,tree):
+        return tree+[None]
+
+    def projarg011(self,tree):
+        return [None]+tree
+
+    def projarg101(self,tree):
+        return [tree[0],None,tree[1]]
+
+    def projarg110(self,tree):
+        return tree+[None]
+
+    def projarg001(self,tree):
+        return [None,None]+tree
+
+    def projarg010(self,tree):
+        return [None]+tree+[None]
+
+    def projarg100(self,tree):
+        return tree+[None,None]
+
+    def projarg(self,tree):
+        return tree[0]
+
+    def function(self,tree):
+        # TODO: {program}
+        # TODO: {program}program
+        if False: # TODO: remove
+            pass
+        elif isinstance(tree[0],ast.Name): # symbol projarg # TODO: is this exclusive?  nothing else getting caught here?
+            # TODO: check if this still works if any of the actual arguments are None
+            if len(tree[1])==2:
+                if tree[1][0]==None and tree[1][1]!=None:                        # projarg01
+                    # TODO: Does this interfere with existing values named 'x'?
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='x')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[ast.Name('x',ctx=ast.Load()),tree[1][1]],keywords=[]))
+                elif tree[1][0]!=None and tree[1][1]==None:                      # projarg10
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='y')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[tree[1][0],ast.Name('y',ctx=ast.Load())],keywords=[]))
+                else:
+                    raise Exception("2-projarg with no Nones or both Nones")
+            elif len(tree[1])==3:
+                if tree[1][0]==None and tree[1][1]!=None and tree[1][2]!=None:   # projarg011
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='x')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[ast.Name('x',ctx=ast.Load()),tree[1][1],tree[1][2]],keywords=[]))
+                elif tree[1][0]!=None and tree[1][1]==None and tree[1][2]!=None: # projarg101
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='y')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[tree[1][0],ast.Name('y',ctx=ast.Load()),tree[1][2]],keywords=[]))
+                elif tree[1][0]!=None and tree[1][1]!=None and tree[1][2]==None: # projarg110
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='z')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[tree[1][0],tree[1][1],ast.Name('z',ctx=ast.Load())],keywords=[]))
+                elif tree[1][0]==None and tree[1][1]==None and tree[1][2]!=None: # projarg001
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='x'),ast.arg(arg='y')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[ast.Name('x',ctx=ast.Load()),ast.Name('y',ctx=ast.Load()),tree[1][2]],keywords=[]))
+                elif tree[1][0]==None and tree[1][1]!=None and tree[1][2]==None: # projarg010
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='x'),ast.arg(arg='z')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[ast.Name('x',ctx=ast.Load()),tree[1][1],ast.Name('z',ctx=ast.Load())],keywords=[]))
+                elif tree[1][0]!=None and tree[1][1]==None and tree[1][2]==None: # projarg100
+                    return ast.Lambda(args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='y'),ast.arg(arg='z')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=ast.Call(tree[0],args=[tree[1][0],ast.Name('y',ctx=ast.Load()),ast.Name('z',ctx=ast.Load())],keywords=[]))
+                else:
+                    raise Exception("3-projarg with the wrong number of Nones")
+            else:
+                raise Exception("projarg with neither 2 nor 3 args")
+        else:
+            raise Exception("function that isn't a {program}, {program}program or symbol projarg")
+
+    def conditional(self,tree):
+        if ((len(tree)-3)%2)!=0:
+            raise Exception("wrong number of clauses in a conditional")
+        elif len(tree)==3: # if,then,else
+            return ast.IfExp(test=tree[0],body=tree[1],orelse=tree[2])
+        else:
+            return ast.IfExp(test=tree[0],body=tree[1],orelse=self.conditional(tree[2:])) # careful of recursion depth?
+
     def factor(self,tree):
-        if len(tree)==1: # lexemeclass
+        if len(tree)==1: # lexemeclass, function, (expression), conditional, list, dictionary
             return tree[0]
         elif len(tree)==2: # symbol+arglist, function+arglist, monad+expression
             # FIXME: better to check ifinstance(tree[1],list) for arglists?
             if isinstance(tree[0],ast.Name): # symbol+arglist
                 return ast.Call(tree[0],args=tree[1],keywords=[])
-            elif isinstance(tree[0],ast.Expression): # function+arglist
-                # FIXME when function implemented: is it definitely a Expression?
+            elif isinstance(tree[0],ast.Lambda): # function+arglist # TODO: is this exclusive?  nothing else getting caught here?
+                return ast.Call(tree[0],args=tree[1],keywords=[])
+                # FIXME once function is implemented
+                # TODO: so we'll need to return a Call of tree[-1], but what about the side-effects?
                 pass # TODO
-            elif isinstance(tree[0],ast.Call): # monad+expression
-                # FIXME when monad implemented: is it definitely a Call?
-                pass # TODO
+            elif isinstance(tree[0],ast.Attribute): # monad+expression # TODO: is this exclusive?  nothing else getting caught here?
+                return ast.Call(func=tree[0],args=[tree[1]],keywords=[])
             else:
                 raise Exception("2-element factor but not a symbol, function or monad first?")
         else:
@@ -164,33 +236,31 @@ class T(Transformer):
 
     def expression(self,tree):
         if len(tree)==1:
-            return ast.Expression(tree[0])
+            return tree[0]
         elif len(tree)==3:
-            return ast.Expression(ast.Call(func=tree[1],args=[tree[0],tree[2]],keywords=[])) # FIXME: locations?
+            return ast.Call(func=tree[1],args=[tree[0],tree[2]],keywords=[])
         else:
             raise Exception("you've got an expression which is neither a factor nor a factor, dyad, expression")
 
     def program(self,tree):
-        if len(tree)==1:
-            return [ast.fix_missing_locations(tree[0])]
-        else:
-            return list(map(lambda n: ast.fix_missing_locations(n), flatten(tree))) # using flattened program list - N.B.: relies on there not being any lists in the tree below it!
+        return tree
+
+    def start(self,tree):
+        return list(map(lambda n: ast.fix_missing_locations(ast.Expression(n)), flatten(tree))) # using flattened program list - N.B.: relies on there not being any lists in the tree below it!
 
     # TODO: implement \ help functions
 
     def quit(self,tree): # TODO: is this the correct way to quit?
         quit()           # TODO: ignore/throw exception if running inside python rather than the pyong interpreter
 
-    def start(self,tree):
-        return tree[0]
-
 # For testing
 from lark import Lark
 with open('g.lark') as g:
     p = Lark(g)
 t = T()
-def dump(e):
-    return list(map(ast.dump,t.transform(p.parse(e))))
+def d(e):
+    for i in t.transform(p.parse(e)):
+        print(dump(i)+"\n")
 def pp(e):
     print(p.parse(e).pretty())
 def src(e):

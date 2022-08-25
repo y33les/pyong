@@ -2,7 +2,7 @@
 
 # Monads
 def kAtom(x):
-    pass
+    return -x # FIXME: proper implementation
 
 def kChar(x):
     pass
@@ -72,7 +72,7 @@ def kCut(x,y):
     pass
 
 def kDefine(x,y):
-    return x-y # TODO: proper version
+    pass
 
 def kDivide(x,y):
     pass
@@ -93,7 +93,7 @@ def kFormat2(x,y):
     pass
 
 def kIndexApply(x,y):
-    pass
+    return x-y # FIXME: proper implementation
 
 def kIndexInDepth(x,y):
     pass
