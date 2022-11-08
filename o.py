@@ -2,7 +2,7 @@
 
 # Monads
 def kAtom(x):
-    return -x # FIXME: proper implementation
+    pass
 
 def kChar(x):
     pass
@@ -35,7 +35,10 @@ def kList(x):
     pass
 
 def kNegate(x):
-    pass
+    if isinstance(x,tuple):
+        return tuple(map(kNegate,x)) # FIXME: is this right for klong?
+    else:
+        return -x
 
 def kNot(x):
     pass
@@ -93,7 +96,7 @@ def kFormat2(x,y):
     pass
 
 def kIndexApply(x,y):
-    return x-y # FIXME: proper implementation
+    pass
 
 def kIndexInDepth(x,y):
     pass
@@ -117,7 +120,7 @@ def kMinAnd(x,y):
     pass
 
 def kMinus(x,y):
-    pass
+    return x-y
 
 def kMore(x,y):
     pass

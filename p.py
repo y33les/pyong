@@ -26,14 +26,14 @@ monadOps =  {'@':  attrWrap('o','kAtom'),             # Atom
              '<':  attrWrap('o','kGradeUp'),          # Grade-Up
              '=':  attrWrap('o','kGroup'),            # Group
              ',':  attrWrap('o','kList'),             # List
-             '=-': attrWrap('o','kNegate'),           # Negate
+             '-': attrWrap('o','kNegate'),            # Negate # Was '=-' for some reason?
              '~':  attrWrap('o','kNot'),              # Not
              '?':  attrWrap('o','kRange'),            # Range
              '%':  attrWrap('o','kReciprocal'),       # Reciprocal
              '|':  attrWrap('o','kReverse'),          # Reverse
              '^':  attrWrap('o','kShape'),            # Shape
              '#':  attrWrap('o','kSize'),             # Size
-             '=+': attrWrap('o','kTranspose'),        # Transpose
+             '+': attrWrap('o','kTranspose'),         # Transpose # Was '=+' for some reason?
              ':_': attrWrap('o','kUndefined')}        # Undefined
 
 # Dyadic operator lookup table
@@ -110,6 +110,9 @@ class T(Transformer):
 
     # Klong lists are immutable, so we use Python tuples instead of lists
     # (this also solves the dictionary lists-as-keys problem)
+    # N.B.: You tried changing this back as lists seemed more intuitive,
+    #       but Python can't have lists as dict keys because they are
+    #       mutable (but it can have nice, immutable tuples)
     def list(self,tree):
         return ast.Tuple(elts=tree,ctx=ast.Load())
 
