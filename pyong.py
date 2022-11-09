@@ -1,6 +1,6 @@
 # Pyong interpreter
 
-import p,o,a,u,lark.exceptions
+import p,o,a,u,e,lark.exceptions
 from lark import Lark
 
 # FIXME: evaluate can't find Python-defined variables
@@ -56,11 +56,17 @@ if __name__ == '__main__':
             #result = transformer.transform(result)
             #print("        => "+to_source(result)) # AST -> equivalent Python code
             print(evaluate(text))
-        except lark.exceptions.UnexpectedCharacters as e:
-            print(e)
-        except lark.exceptions.UnexpectedEOF as e:
-            print(e)
-        except NameError as e:
-            print(e)
+        except lark.exceptions.UnexpectedCharacters as ex:
+            print(ex)
+        except lark.exceptions.UnexpectedEOF as ex:
+            print(ex)
+        except NameError as ex:
+            print(ex)
         except EOFError:
             break
+        except e.KlongTypeError as ex:
+            print(ex)
+        except e.KlongLengthError as ex:
+            print(ex)
+        except e.KlongRangeError as ex:
+            print(ex)
