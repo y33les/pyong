@@ -117,7 +117,7 @@ def kAmend(x,y):
               "-------":="xx",[1 4]  -->  "-xx-xx-"
                      "abc":="def",3  -->  "abcdef"
     """
-    out=""
+    out="" # TODO: remove; this was just to temporarily suppress an error while testing cut
     s = False
     if isinstance(x,str):
         s = True
