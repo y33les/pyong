@@ -117,7 +117,18 @@ def kAmend(x,y):
               "-------":="xx",[1 4]  -->  "-xx-xx-"
                      "abc":="def",3  -->  "abcdef"
     """
-    pass
+    out=""
+    s = False
+    if isinstance(x,str):
+        s = True
+        x = tuple(x)
+    if not(isinstance(y,tuple)):
+        raise e.KlongTypeError("amend: type error:\n  amend takes a vector on the right, but you provided a " + type(y).__name__)
+    if not(all(map(lambda i: isinstance(i,int),y[1:]))):
+        raise e.KlongTypeError("amend: type error:\n  amend's right arg must be a vector in which every element but the first must be an integer, but your right arg looks like (" + "".join(map(lambda i: type(i).__name__ + ", ",y))[:-2] + ")")
+    if s:
+        out = tuple(map(lambda t: "".join(t),out)) # collapse back into strings
+    return out
 
 def kAmendInDepth(x,y):
     pass
@@ -142,7 +153,8 @@ def kCut(x,y):
                    [1 1]:_[1 2]  -->  [[1] [] [2]]
     """
     if not(isinstance(y,tuple) or isinstance(y,str)):
-        raise e.KlongTypeError("cut: type error:\n  cut takes a list or string on the right, but you provided a " + type(y).__name__)
+        raise e.KlongTypeError("cut: type error:\n  cut takes a vector or string on the right, but you provided a " + type(y).__name__)
+    s = False
     if isinstance(y,str):
         s = True
         y = tuple(y)
@@ -170,7 +182,7 @@ def kCut(x,y):
             # range error if not monotonically increasing
             # insert empty list if duplicate indices
             if not(all(map(lambda i: isinstance(i,int),x))):
-                raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int tuple on the left, but you've provided a tuple of (" + "".join(map(lambda i: type(i).__name__ + ", ",x)) + ")")
+                raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int vector on the left, but you've provided a tuple of (" + "".join(map(lambda i: type(i).__name__ + ", ",x))[:-2] + ")")
             if not(all(map(lambda t: t[0]<=t[1],zip((0,)+x[:-1],x)))): # check monotonically increasing
                 raise e.KlongRangeError("cut: range error: " + str(x))
             else:
@@ -179,7 +191,7 @@ def kCut(x,y):
             out = tuple(map(lambda t: "".join(t),out)) # collapse back into strings
         return out
     else:
-        raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int tuple on the left, but you provided a " + type(x).__name__)
+        raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int vector on the left, but you provided a " + type(x).__name__)
 
 def kDefine(x,y):
     pass
