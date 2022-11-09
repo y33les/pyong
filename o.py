@@ -94,6 +94,29 @@ def kUndefined(x):
 
 # Dyads
 def kAmend(x,y):
+    """
+    a:=b                                                     [Amend]
+
+    "a" must be a list or string and "b" must be a list where the
+    first element can have any type and the remaining elements must
+    be integers. It returns a new object of a's type where a@b2
+    through a@bN are replaced by b1. When "a" is a string, b1 must
+    be a character or a string. The first element of "a" has an
+    index of 0.
+
+    When both "a" and b1 are strings, Amend replaces each substring
+    of "a" starting at b2..bN by b1. Note that no index b2..bN must
+    be larger than #a or a range error will occur. When b1 is
+    replaced at a position past (#a)-#b1, the amended string will
+    grow by the required amount. For instance:
+
+    "aa":="bc",1 --> "abc".
+
+    Examples:    "-----":=0cx,[1 3]  -->  "-x-x-"
+                       [1 2 3]:=0,1  -->  [1 0 3]
+              "-------":="xx",[1 4]  -->  "-xx-xx-"
+                     "abc":="def",3  -->  "abcdef"
+    """
     pass
 
 def kAmendInDepth(x,y):
@@ -118,29 +141,31 @@ def kCut(x,y):
                        3:_"abc"  -->  ["abc" ""]
                    [1 1]:_[1 2]  -->  [[1] [] [2]]
     """
-    if not(isinstance(y,tuple)):
+    if not(isinstance(y,tuple) or isinstance(y,str)):
         raise e.KlongTypeError("cut: type error:\n  cut takes a list or string on the right, but you provided a " + type(y).__name__)
+    if isinstance(y,str):
+        s = True
+        y = tuple(y)
     if isinstance(x,int):
         if x<0:
             raise e.KlongRangeError("cut: range error: " + str(x))
         elif x==0:
-            return ((),y)
+            out = ((),y)
         elif x==len(y):
-            return (y,())
+            out = (y,())
         elif x>len(y):
             raise e.KlongLengthError("cut: length error: " + str(x))
         else:
-            return (y[0:x],y[x:])
+            out = (y[0:x],y[x:])
+        if s:
+            out = tuple(map(lambda t: "".join(t),out)) # collapse back into strings
+        return out
     elif isinstance(x,tuple):
-        # match x:
-        # | x = (y[0:x],y[x+1:])
-        # | x::xs = (kCut(x,y)[0], kCut(xs,kCut(x,y)[1]))
-        # | () = ()
         # This would all be a lot nicer in Python 3.10, which has match, but we're on 3.8
         if x==():
-            return (y,)
+            out = (y,)
         elif len(x)==1:
-            return kCut(x[0],y)
+            out = kCut(x[0],y)
         else:
             # range error if not monotonically increasing
             # insert empty list if duplicate indices
@@ -149,7 +174,10 @@ def kCut(x,y):
             if not(all(map(lambda t: t[0]<=t[1],zip((0,)+x[:-1],x)))): # check monotonically increasing
                 raise e.KlongRangeError("cut: range error: " + str(x))
             else:
-                return kCut(x[0],y)[0] + kCut(x[1:],kCut(x[0],y)[1])
+                out = tuple(map(lambda t: y[t[0]:t[1]],zip((0,)+x,x+(None,))))
+        if s:
+            out = tuple(map(lambda t: "".join(t),out)) # collapse back into strings
+        return out
     else:
         raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int tuple on the left, but you provided a " + type(x).__name__)
 
