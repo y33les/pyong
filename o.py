@@ -3,6 +3,8 @@
 # (see https://t3x.org/klong/klong-ref.txt.html)
 
 import e
+import operator as op
+from functools import reduce
 
 # Monads
 def kAtom(x):
@@ -36,10 +38,63 @@ def kChar(x):
         return chr(x)
 
 def kEnumerate(x):
-    pass
+    """
+    !a                                                   [Enumerate]
+
+    Create a list of integers from 0 to a-1. !0 gives [].
+
+    Examples: !0   -->  []
+              !1   -->  [0]
+              !10  -->  [0 1 2 3 4 5 6 7 8 9]
+
+    N.B.: The original Klong reference specifies that !1 --> [1], but
+          this does not reflect the behaviour of the official Klong
+          interpreter, which returns [0].  It is therefore assumed to
+          be an error, and pyong instead recreates the interpreter's
+          behaviour (i.e. that !1 --> [0]).
+    """
+    if not(isinstance(x,int)):
+        raise e.KlongTypeError("enumerate: type error:\n  enumerate takes an int, but you provided a " + type(x).__name__)
+    if x<0:
+        raise e.KlongDomainError("enumerate: domain error\n  enumerate only accepts non-negative integers, but you provided " + str(x))
+    return tuple(range(x))
 
 def kExpandWhere(x):
-    pass
+    """
+    &a                                                [Expand/Where]
+
+    Expand "a" to a list of subsequent integers X, starting at 0,
+    where each XI is included aI times. When "a" is zero or an
+    empty list, return nil. When "a" is a positive integer, return
+    a list of that many zeros.
+
+    In combination with predicates this function is also called
+    Where, since it compresses a list of boolean values to indices,
+    e.g.:
+
+     [1 2 3 4 5]=[0 2 0 4 5]  -->  [0 1 0 1 1]
+    &[1 2 3 4 5]=[0 2 0 4 5]  -->  [1 3 4]
+
+    Examples:           &0  -->   []
+                        &5  -->   [0 0 0 0 0]
+                  &[1 2 3]  -->   [0 1 1 2 2 2]
+              &[0 1 0 1 0]  -->   [1 3]
+    """
+    if isinstance(x,int): # expand (int)
+        if x<0:
+            raise e.KlongRangeError("expand/where: range error: " + str(x))
+        return (0,)*x
+    elif isinstance(x,tuple):
+        if not(all(map(lambda i: isinstance(i,int),x))):
+            raise e.KlongTypeError("expand/where: type error:\n  expand/where takes an int vector, but your arg looks like (" + "".join(map(lambda i: type(i).__name__ + ", ",x))[:-2] + ")")
+        if not(all(map(lambda i: i>=0,x))):
+            raise e.KlongRangeError("expand/where: range error: " + str(tuple([i for i in x if i<0])))
+        if all(map(lambda i: i==0 or i==1,x)): # where
+            return tuple([i for i in range(len(x)) if x[i]])
+        else: # expand (vector)
+            return tuple(reduce(op.add,[(n,)*x[n] for n in range(len(x))]))
+    else:
+        raise e.KlongTypeError("expand/where: type error:\n  expand/where takes an int or an int vector, but you provided a " + type(x).__name__)
 
 def kFirst(x):
     pass
@@ -63,6 +118,16 @@ def kList(x):
     pass
 
 def kNegate(x):
+    """
+    -a                                                      [Negate]
+
+    Return 0-a; "a" must be a number.
+
+    "-" is an atomic operator.
+
+    Examples:    -1  -->  -1
+              -1.23  -->  -1.23
+    """
     if isinstance(x,tuple):
         return tuple(map(kNegate,x)) # FIXME: is this right for klong?
     else:
@@ -125,11 +190,13 @@ def kAmend(x,y):
         raise e.KlongTypeError("amend: type error:\n  amend takes a vector on the right, but you provided a " + type(y).__name__)
     if not(all(map(lambda i: isinstance(i,int),y[1:]))):
         raise e.KlongTypeError("amend: type error:\n  amend's right arg must be a vector in which every element but the first must be an integer, but your right arg looks like (" + "".join(map(lambda i: type(i).__name__ + ", ",y))[:-2] + ")")
+    # TODO: implement it!!
     if s:
         out = tuple(map(lambda t: "".join(t),out)) # collapse back into strings
     return out
 
 def kAmendInDepth(x,y):
+    # TODO
     pass
 
 def kCut(x,y):
@@ -193,27 +260,96 @@ def kCut(x,y):
         raise e.KlongTypeError("cut: type error:\n  cut takes an int or an int vector on the left, but you provided a " + type(x).__name__)
 
 def kDefine(x,y):
+    # TODO
     pass
 
 def kDivide(x,y):
     """
     a%b                                                     [Divide]
 
-        Return the quotient of "a" and "b". The result is always a real
-        number, even if the result has a fractional part of 0.
+    Return the quotient of "a" and "b". The result is always a real
+    number, even if the result has a fractional part of 0.
 
-        "%" is an atomic operator.
+    "%" is an atomic operator.
 
-        Examples: 10%2  -->  5.0
-                  10%8  -->  1.25
+    Examples: 10%2  -->  5.0
+              10%8  -->  1.25
     """
     return float(x)/float(y)
 
 def kDrop(x,y):
-    pass
+    """
+    a_b                                                       [Drop]
+
+    When "b" is a list or string, drop "a" elements or characters
+    from it, returning the remaining list. Dropping more elements
+    than contained in "b" will yield the empty list/string. A
+    negative value for "a" will drop elements from the end of "b".
+
+    When "b" is a dictionary, remove the entry with the key "a" from
+    it. Dictionary removal is in situ, i.e. the dictionary will be
+    modified. Other objects will be copied.
+
+    Examples: 3_[1 2 3 4 5]  -->  [4 5]
+              (-3)_"abcdef"  -->  "abc"
+                 17_[1 2 3]  -->  []
+                   (-5)_"x"  -->  ""
+                      0_[1]  -->  [1]
+
+    N.B. Although the Klong documentation above specifies that
+         dictionaries are modified in situ, this is not yet the case
+         in pyong, which simply returns a new dictionary with the
+         specified keys dropped.
+    """
+    s = False
+    if not(isinstance(y,dict)):
+        if not(isinstance(x,int)):
+            raise e.KlongTypeError("drop: type error:\n  drop takes an int on the left, but you provided a " + type(x).__name__)
+        if not(isinstance(y,tuple) or isinstance(y,str)):
+            raise e.KlongTypeError("cut: type error:\n  cut takes a vector, a string or a dictionary on the right, but you provided a " + type(y).__name__)
+        if isinstance(y,str):
+            s = True
+            y = tuple(y)
+        out = ()
+        if x>=0:
+            out = y[x:]
+        else:
+            if abs(x)>=len(y):
+                pass
+            else:
+                out = y[:x]
+        if s:
+            out = "".join(out) # collapse back into a string
+        return out
+    else:
+        # TODO: In the Klong reference, it says that dictionaries get modified in situ
+        y.pop(x)
+        return y
 
 def kEqual(x,y):
-    pass
+    """
+    a=b                                                      [Equal]
+
+    Return 1, if "a" and "b" are equal, otherwise return 0.
+
+    Numbers are equal, if they have the same value.
+    Characters are equal, if (#a)=#b.
+    Strings and symbols are equal, if they contain the same
+    characters in the same positions.
+
+    "=" is an atomic operator. In particular it means that it
+    cannot compare lists, but only elements of lists. Use "~"
+    (Match) to compare lists.
+
+    Real numbers should not be compared with "=". Use "~" instead.
+
+    Examples:             1=1  -->  1
+                  "foo"="foo"  -->  1
+                    :foo=:foo  -->  1
+                      0cx=0cx  -->  1
+              [1 2 3]=[1 4 3]  -->  [1 0 1]
+    """
+    return int(x==y)
 
 def kFind(x,y):
     pass

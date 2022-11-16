@@ -81,14 +81,99 @@ assert kCut((2,2,4),"foobar") == ("fo","","ob","ar")
 assert kCut((0,2,6),"foobar") == ("","fo","obar","")
 print("PASS")
 
-
-
+# TODO: define
 
 # Divide
 print("Divide:\t\t",end="")
-assert kDivide(4,2)==-2.0
+assert kDivide(4,2)==2.0
 assert isinstance(kDivide(4,2),float)
 assert kDivide(3,2)==1.5
+print("PASS")
+
+# Drop
+print("Drop:\t\t",end="")
+assert kDrop(3,(1,2,3,4,5))==(4,5)
+assert kDrop(-3,(1,2,3,4,5))==(1,2)
+assert kDrop(2,"foobar")=="obar"
+assert kDrop(-2,"foobar")=="foob"
+assert kDrop(10,(1,2,3,4,5))==()
+assert kDrop(10,"foobar")==""
+assert kDrop(-10,(1,2,3,4,5))==()
+assert kDrop(-10,"foobar")==""
+assert kDrop(0,(1,2,3,4,5))==(1,2,3,4,5)
+assert kDrop(0,"foobar")=="foobar"
+assert kDrop("b",{"a":1,"b":2,"c":3})=={"a":1,"c":3}
+assert kDrop((2,3),{(1,2):"a",(2,3):"b",(3,4):"c"})=={(1,2):"a",(3,4):"c"}
+try:
+    kDrop("foo",(1,2,3,4,5))
+except e.KlongTypeError:
+    pass
+try:
+    kDrop(2,8)
+except e.KlongTypeError:
+    pass
+# TODO: once in-situ dictionary drop is implemented, make sure it works
+print("PASS")
+
+# Enumerate
+print("Enumerate:\t",end="")
+assert kEnumerate(0)==()
+assert kEnumerate(1)==(0,)
+assert kEnumerate(10)==(0,1,2,3,4,5,6,7,8,9)
+try:
+    kEnumerate(-10)
+except e.KlongDomainError:
+    pass
+try:
+    kEnumerate("foobar")
+except e.KlongTypeError:
+    pass
+try:
+    kEnumerate(2.5)
+except e.KlongTypeError:
+    pass
+try:
+    kEnumerate((2,4,6,8))
+except e.KlongTypeError:
+    pass
+print("PASS")
+
+# Equal
+print("Equal:\t\t",end="")
+assert kEqual(2,2)
+assert not(kEqual(2,4))
+assert kEqual(2.5,2.5)
+assert not(kEqual(2.5,2.6))
+assert kEqual(2,2.0)
+assert not(kEqual(2,2.1))
+assert kEqual("foo","foo")
+assert not(kEqual("foo","bar"))
+# TODO: character-string equality?
+# TODO: equality of symbols, once implemented
+# TODO: vectors, i.e. [1 2 3]=[1 4 3] --> [1 0 1]
+print("PASS")
+
+# Expand/Where
+print("Expand/Where:\t",end="")
+assert kExpandWhere(0)==()
+assert kExpandWhere(5)==(0,0,0,0,0)
+assert kExpandWhere((1,2,3))==(0,1,1,2,2,2)
+assert kExpandWhere((0,1,0,1,0))==(1,3)
+assert kExpandWhere((0,))==()
+assert kExpandWhere((1,))==(0,)
+assert kExpandWhere((2,0,4))==(0,0,2,2,2,2)
+try:
+    kExpandWhere(-2)
+except e.KlongRangeError:
+    pass
+try:
+    kExpandWhere((1,2,-3,4,-5,6,7,8))
+except e.KlongRangeError:
+    pass
+try:
+    kExpandWhere("foobar")
+except e.KlongTypeError:
+    pass
 print("PASS")
 
 
