@@ -9,7 +9,7 @@ from o import *
 # TODO: amend-in-depth
 
 # Atom
-print("Atom:\t",end="")
+print("Atom:\t\t",end="")
 assert kAtom("")
 assert kAtom(())
 assert kAtom(123)
@@ -17,7 +17,7 @@ assert not(kAtom((1,2,3)))
 print("PASS")
 
 # Char
-print("Char:\t",end="")
+print("Char:\t\t",end="")
 assert kChar(64)=="@"
 try:
     kChar("a")
@@ -26,7 +26,7 @@ except e.KlongTypeError:
 print("PASS")
 
 # Cut
-print("Cut:\t",end="")
+print("Cut:\t\t",end="")
 try:
     kCut(2,2)
 except e.KlongTypeError:
@@ -79,4 +79,74 @@ except e.KlongRangeError:
 assert kCut((2,4),"foobar") == ("fo","ob","ar")
 assert kCut((2,2,4),"foobar") == ("fo","","ob","ar")
 assert kCut((0,2,6),"foobar") == ("","fo","obar","")
+print("PASS")
+
+
+
+
+# Divide
+print("Divide:\t\t",end="")
+assert kDivide(4,2)==-2.0
+assert isinstance(kDivide(4,2),float)
+assert kDivide(3,2)==1.5
+print("PASS")
+
+
+
+
+# Minus
+print("Minus:\t\t",end="")
+assert kMinus(2,3)==-1
+assert kMinus(3,2)==1
+print("PASS")
+
+
+
+
+# Negate
+print("Negate:\t\t",end="")
+assert kNegate(2)==-2
+assert kNegate(-2)==2
+assert kNegate(0)==0
+print("PASS")
+
+
+
+
+# Plus
+print("Plus:\t\t",end="")
+assert kPlus(2,3)==5
+assert kPlus(3,2)==5
+print("PASS")
+
+
+
+
+# Power
+print("Power:\t\t",end="")
+assert kPower(2,3)==8
+assert kPower(3,2)==9
+print("PASS")
+
+
+
+# Remainder
+print("Remainder:\t",end="")
+assert kRemainder(7,5)==2
+assert kRemainder(7,-5)==2
+assert kRemainder(-7,5)==-2
+assert kRemainder(-7,-5)==-2
+try:
+    kRemainder(7,0)
+except ZeroDivisionError:
+    pass
+print("PASS")
+
+
+
+
+# Times
+print("Times:\t\t",end="")
+assert kTimes(2,3)==6
+assert kTimes(3,2)==6
 print("PASS")

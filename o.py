@@ -117,7 +117,6 @@ def kAmend(x,y):
               "-------":="xx",[1 4]  -->  "-xx-xx-"
                      "abc":="def",3  -->  "abcdef"
     """
-    out="" # TODO: remove; this was just to temporarily suppress an error while testing cut
     s = False
     if isinstance(x,str):
         s = True
@@ -197,7 +196,18 @@ def kDefine(x,y):
     pass
 
 def kDivide(x,y):
-    pass
+    """
+    a%b                                                     [Divide]
+
+        Return the quotient of "a" and "b". The result is always a real
+        number, even if the result has a fractional part of 0.
+
+        "%" is an atomic operator.
+
+        Examples: 10%2  -->  5.0
+                  10%8  -->  1.25
+    """
+    return float(x)/float(y)
 
 def kDrop(x,y):
     pass
@@ -239,22 +249,86 @@ def kMinAnd(x,y):
     pass
 
 def kMinus(x,y):
+    """
+    a-b                                                      [Minus]
+
+    Subtract "b" from "a" and return the result. "a" and "b" must be
+    numbers.
+
+    "-" is an atomic operator.
+
+    Examples:  12-3  -->  9
+              12--3  -->  15
+              1-0.3  -->  0.7
+    """
     return x-y
 
 def kMore(x,y):
     pass
 
 def kPlus(x,y):
-    pass
+    """
+    a+b                                                       [Plus]
+
+    Add "b" to "a" and return the result. "a" and "b" must both be
+    numbers.
+
+    Dyadic "+" is an atomic operator.
+
+    Examples:  12+3  -->  15
+              12+-3  -->  9
+              1+0.3  -->  1.3
+    """
+    return x+y
 
 def kPower(x,y):
-    pass
+    """
+    a^b                                                      [Power]
+
+    Compute "a" to the power of "b" and return the result. Both "a"
+    and "b" must be numbers. The result of a^b cannot be a complex
+    number.
+
+    Dyadic "^" is an atomic operator.
+
+    Examples:   2^0  -->  1
+                2^1  -->  2
+                2^8  -->  256
+               2^-5  -->  0.03125
+              0.3^3  -->  0.027
+              2^0.5  -->  1.41421356237309504
+    """
+    return x**y
 
 def kReshape(x,y):
     pass
 
 def kRemainder(x,y):
-    pass
+    """
+    a!b                                                  [Remainder]
+
+    Return the truncated division remainder of "a" and "b". Both
+    "a" and "b" must be integers.
+
+    Formally, a = (b*a:%b) + a!b .
+
+    Dyadic "!" is an atomic operator.
+
+    Examples:    7!5  -->  2
+                7!-5  -->  2
+              (-7)!5  --> -2
+               -7!-5  --> -2
+    """
+    if x>=0:
+        if y>=0:
+            return x%y
+        else:
+            return x%-y
+    else:
+        if y>=0:
+            return -((-x)%y)
+        else:
+            return x%y
 
 def kRotate(x,y):
     pass
@@ -266,4 +340,15 @@ def kTake(x,y):
     pass
 
 def kTimes(x,y):
-    pass
+    """
+    a*b                                                      [Times]
+
+    Return "a" multiplied by "b". "a" and "b" must both be numbers.
+
+    Dyadic "*" is an atomic operator.
+
+    Examples:   3*4  -->  12
+               3*-4  -->  -12
+              0.3*7  -->  2.1
+    """
+    return x*y
