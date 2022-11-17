@@ -26,6 +26,12 @@ class KlongSpecialValue:
     def __gt__(self,x):
         pass
 
+    def __le__(self,x):
+        return self.__eq__(x) or self.__lt__(x)
+
+    def __ge__(self,x):
+        return self.__eq__(x) or self.__gt__(x)
+
 class KlongUndefined(KlongSpecialValue):
 
     def __init__(self):
