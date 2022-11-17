@@ -2,7 +2,7 @@
 # Each operator's docstring is taken directly from klong-ref.txt
 # (see https://t3x.org/klong/klong-ref.txt.html)
 
-import e
+import e, v
 import operator as op
 from functools import reduce
 
@@ -352,7 +352,44 @@ def kEqual(x,y):
     return int(x==y)
 
 def kFind(x,y):
-    pass
+    """
+    a?b                                                       [Find]
+
+    Find each occurrence of "b" in "a". "a" must be a list, string,
+    or dictionary. When "a" is a dictionary, return the value
+    associated with the given key. When "a" is a list or string,
+    return a list containing the position of each match.
+
+    When both "a" and "b" are strings, return a list containing each
+    position of the substring "b" inside of "a". The empty string ""
+    is contained between any two characters of a string, even before
+    the first and after the last character.
+
+    In any case a return value of nil indicates that "b" is not
+    contained in "a", except when "a" is a dictionary. When a key
+    cannot be found in a dictionary, Find will return :undefined.
+    (See [Undefined].)
+
+    Examples: [1 2 3 1 2 1]?1  -->  [0 3 5]
+                    [1 2 3]?4  -->  []
+                  "hello"?0cl  -->  [2 3]
+                "xyyyyz"?"yy"  -->  [1 2 3]
+                        ""?""  -->  [0]
+                  :{[1 []]}?1  -->  []
+                   :{[1 2]}?3  -->  :undefined
+    """
+    if isinstance(x,dict):
+        try:
+            return x[y]
+        except KeyError:
+            return v.KlongUndefined()
+    else:
+        if isinstance(x,str):
+            if x=="" and y=="":
+                return (0,)
+            if len(y)!=1 and isinstance(y,str):
+                return tuple([n for n in range(len(x)) if x[n:n+len(y)]==y])
+        return tuple([n for n in range(len(x)) if x[n]==y])
 
 def kForm(x,y):
     pass

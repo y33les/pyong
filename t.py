@@ -2,7 +2,7 @@
 # Tests largely derived from the examples in klong-ref.txt
 # (see https://t3x.org/klong/klong-ref.txt.html)
 
-import e
+import e,v
 from o import *
 
 # TODO: amend
@@ -174,6 +174,19 @@ try:
     kExpandWhere("foobar")
 except e.KlongTypeError:
     pass
+print("PASS")
+
+# Find
+print("Find:\t\t",end="")
+assert kFind((1,2,3,1,2,1),1)==(0,3,5)
+assert kFind((1,2,3),4)==()
+assert kFind("hello","l")==(2,3)
+assert kFind("xyyyyz","yy")==(1,2,3)
+assert kFind("","")==(0,)
+assert kFind({1:()},1)==()
+assert kFind({"a":1, "b":2, "c":3},"b")==2
+assert kFind({1:2},3)==v.KlongUndefined()
+assert kFind({"a":1, "b":2, "c":3},"d")==v.KlongUndefined()
 print("PASS")
 
 
